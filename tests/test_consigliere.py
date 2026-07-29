@@ -183,11 +183,14 @@ class ConsiglierePackageTests(unittest.TestCase):
         )
 
     def test_required_resources_exist(self):
+        manifest = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         for relative in (
             "SKILL.md", "assets/goal-template.md", "assets/brief-template.md",
             "references/readiness-criteria.md", "scripts/consigliere.py",
         ):
             self.assertTrue((SKILL / relative).is_file(), relative)
+            if relative != "SKILL.md":
+                self.assertIn(f"]({relative})", manifest)
 
 
 if __name__ == "__main__":

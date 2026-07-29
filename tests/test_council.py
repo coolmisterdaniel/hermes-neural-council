@@ -178,6 +178,7 @@ class PackageTests(unittest.TestCase):
             self.assertIn("version: 0.2.0", text)
             expected = "consigliere.py" if name == "consigliere" else "council.py"
             self.assertIn(f"${{HERMES_SKILL_DIR}}/scripts/{expected}", text)
+            self.assertIn(f"](scripts/{expected})", text)
 
 
 if __name__ == "__main__":
