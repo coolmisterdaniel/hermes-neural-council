@@ -1,12 +1,23 @@
 # Hermes Consigliere
 
-Три публичных скилла для [Hermes Agent](https://hermes-agent.nousresearch.com/):
+**Hermes Consigliere** is a set of three skills for reviewing ideas and making
+decisions with additional [Hermes Agent](https://hermes-agent.nousresearch.com/)
+profiles.
 
-| Скилл | Что делает | Вызовов моделей |
-|---|---|---:|
-| `mini-sovet` | один независимый ответ другого профиля | 1 |
-| `spor` | до трёх раундов критики с тем же профилем | 1–3 |
-| `consigliere` | бриф, сторож, два веб-ресерча, критика и итог | 5 |
+**Mini-sovet** requests one additional opinion or critique. It is useful when
+you want a quick second look at a decision without starting a complex analysis.
+
+**Spor** conducts up to three rounds of discussion with another model. It helps
+examine disagreements, test arguments, and uncover weaknesses that may remain
+hidden after a single response.
+
+**Consigliere** is designed for complex and costly decisions. It clarifies the
+goal and prepares a brief, checks whether the brief is ready, runs two web
+research passes, critiques the findings, and produces a final conclusion with
+risks, conditions, and a concrete next step.
+
+Together, these skills provide three levels of depth: a quick second opinion, a
+focused debate, and a full analysis of a complex problem.
 
 Проект не содержит моделей, API-ключей и личных настроек. Пользователь назначает
 любые поддерживаемые модели отдельным профилям Hermes. Личная версия автора не
