@@ -80,7 +80,7 @@ class CouncilCliTests(unittest.TestCase):
         self.assertEqual(response.read_text(encoding="utf-8"), "Ответ профиля council-1.\n")
         state = json.loads((response.parent / "state.json").read_text(encoding="utf-8"))
         self.assertEqual(state["successful_rounds"], 1)
-        args = json.loads(self.log.read_text(encoding="utf-8"))
+        args = json.loads(self.log.read_text(encoding="utf-8"))[0]
         self.assertEqual(args[args.index("--profile") + 1], "council-1")
         self.assertIn("--ignore-rules", args)
 
@@ -171,14 +171,14 @@ class PackageTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(built.read_bytes()).hexdigest(), expected)
 
     def test_skill_manifests_have_required_fields_and_portable_path(self):
-        for name in ("mini-sovet", "spor"):
+        for name in ("mini-sovet", "spor", "consigliere"):
             text = (ROOT / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
             self.assertIn(f"name: {name}", text)
             self.assertIn("description:", text)
-            self.assertIn("version: 0.1.0", text)
-            self.assertIn("${HERMES_SKILL_DIR}/scripts/council.py", text)
+            self.assertIn("version: 0.2.0", text)
+            expected = "consigliere.py" if name == "consigliere" else "council.py"
+            self.assertIn(f"${{HERMES_SKILL_DIR}}/scripts/{expected}", text)
 
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,11 +1,11 @@
 ---
 name: mini-sovet
 description: Один независимый ответ отдельного профиля Hermes. Использовать по просьбам «дерни другую модель», «спроси модель №1», «мини-совет», «узнай второе мнение». Для нескольких раундов использовать spor.
-version: 0.1.0
-author: coolmisterdaniel
-platforms: [linux, macos]
 metadata:
   hermes:
+    version: 0.2.0
+    author: coolmisterdaniel
+    platforms: [linux, macos]
     tags: [ai-agents, critique, second-opinion]
     category: productivity
     requires_toolsets: [terminal]

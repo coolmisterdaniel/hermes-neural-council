@@ -16,7 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 MAX_INPUT_BYTES = 200_000
 MAX_ROUNDS = 3
 

@@ -1,11 +1,11 @@
 ---
 name: spor
 description: До трёх раундов критики с одним профилем Hermes. Использовать по просьбам «обсудите», «поспорьте», «разберитесь вместе», «сойдитесь во мнении». Для одного ответа использовать mini-sovet.
-version: 0.1.0
-author: coolmisterdaniel
-platforms: [linux, macos]
 metadata:
   hermes:
+    version: 0.2.0
+    author: coolmisterdaniel
+    platforms: [linux, macos]
     tags: [ai-agents, critique, debate]
     category: productivity
     requires_toolsets: [terminal]

@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
-"""Собирает два самостоятельных Hermes-скилла из одного исходника."""
+"""Собирает самостоятельные Hermes-скиллы из исходников."""
 
 from pathlib import Path
 import hashlib
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "src" / "council.py"
-TARGETS = [
-    ROOT / "skills" / "mini-sovet" / "scripts" / "council.py",
-    ROOT / "skills" / "spor" / "scripts" / "council.py",
+BUILDS = [
+    (
+        ROOT / "src" / "council.py",
+        ROOT / "skills" / "mini-sovet" / "scripts" / "council.py",
+    ),
+    (
+        ROOT / "src" / "council.py",
+        ROOT / "skills" / "spor" / "scripts" / "council.py",
+    ),
+    (
+        ROOT / "src" / "consigliere.py",
+        ROOT / "skills" / "consigliere" / "scripts" / "consigliere.py",
+    ),
 ]
 
 
@@ -18,16 +27,14 @@ def digest(path: Path) -> str:
 
 
 def main() -> None:
-    for target in TARGETS:
+    for source, target in BUILDS:
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(SOURCE, target)
+        shutil.copy2(source, target)
         target.chmod(0o755)
-    expected = digest(SOURCE)
-    if any(digest(target) != expected for target in TARGETS):
-        raise SystemExit("Сборка разошлась с исходником")
-    print(f"Собрано: {len(TARGETS)} файла, sha256={expected}")
+        if digest(target) != digest(source):
+            raise SystemExit(f"Сборка разошлась с исходником: {target}")
+    print(f"Собрано: {len(BUILDS)} файла")
 
 
 if __name__ == "__main__":
     main()
-
