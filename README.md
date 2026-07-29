@@ -1,4 +1,4 @@
-# Hermes Neural Council
+# Hermes Consigliere
 
 Три публичных скилла для [Hermes Agent](https://hermes-agent.nousresearch.com/):
 
@@ -18,10 +18,10 @@ Hermes Desktop.
 ## Установка
 
 ```bash
-hermes skills tap add coolmisterdaniel/hermes-neural-council
-hermes skills install coolmisterdaniel/hermes-neural-council/mini-sovet
-hermes skills install coolmisterdaniel/hermes-neural-council/spor
-hermes skills install coolmisterdaniel/hermes-neural-council/consigliere
+hermes skills tap add coolmisterdaniel/hermes-consigliere
+hermes skills install coolmisterdaniel/hermes-consigliere/mini-sovet
+hermes skills install coolmisterdaniel/hermes-consigliere/spor
+hermes skills install coolmisterdaniel/hermes-consigliere/consigliere
 ```
 
 Обновления:
