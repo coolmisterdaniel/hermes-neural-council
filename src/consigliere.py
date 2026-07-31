@@ -46,9 +46,28 @@ GUEST_HEADER = """Тебя пригласили разово для одного
 """
 
 GUARD_PROMPT = """[ROLE:GUARD]
-Ты — сторож перед дорогим исследованием. Проверь комплект строго по приложенному
-списку критериев. По каждому критерию приведи подтверждающий фрагмент из цели или
-брифа. Не додумывай отсутствующее. При любом сомнении выбирай «НЕ ГОТОВО».
+Ты — сторож перед дорогим исследованием.
+
+Первым разделом напиши «Как я понял задачу»: две-три строки СВОИМИ словами о том,
+какое решение надо принять и в каких границах. Не переписывай формулировку из
+файлов. Если твой пересказ разойдётся с замыслом владельца, он увидит это здесь и
+поправит бриф до четырёх дорогих вызовов.
+
+Затем проверь комплект строго по приложенному списку критериев. По каждому критерию
+приведи подтверждающий фрагмент из цели или брифа. Не додумывай отсутствующее. При
+любом сомнении выбирай «НЕ ГОТОВО».
+
+Сверх списка проверь три вещи:
+- нет ли внутренних противоречий: бриф правят между заходами, и старая строка
+  часто остаётся рядом с новой;
+- не предрешён ли ответ: не лежит ли ответ на открытый вопрос прямо в брифе под
+  видом факта обстановки («такой-то инструмент уже оплачен и работает»). Нашёл —
+  назови вопрос и строку, которая его закрывает;
+- помечены ли отсекающие ограничения (бюджет, валюта, чем можно платить,
+  обязательные материалы, запреты, страна) как «подтверждено владельцем» либо
+  «предположение». Требования владельца подтверждает владелец; внешние
+  ограничения — закон, правила площадок, техническая несовместимость — требуют
+  источника. Непомеченное считается предположением, и отсекать по нему нельзя.
 
 Последняя строка должна быть РОВНО одной из двух:
 ИТОГ: ГОТОВО
@@ -66,34 +85,83 @@ RESEARCH_PROMPT = """[ROLE:{role}]
 - Не более 10 поисковых вызовов; затем обязательно выдай результат.
 - Не помещай личные, медицинские и идентифицирующие данные в поисковые запросы.
 - Отделяй проверенный факт от предположения и от пункта «проверить владельцу».
+- Выбираешь инструмент, который у владельца уже есть, — покажи сравнение с
+  альтернативами. «Уже оплачен» — довод в пользу простоты запуска, не
+  доказательство лучшего выбора.
+- Деньги считай в долларах. Страна владельца не задана: не подставляй юрисдикцию,
+  местные цены и местные способы оплаты. Зависит ответ от страны — дай развилку.
 
 Формат: краткий вывод; таблица «аспект / что известно / источник или пометка»;
 «неочевидное»; «что проверить владельцу».
 """
 
 CRITIQUE_PROMPT = """[ROLE:CRITIQUE]
-Перед тобой две обезличенные карты по одной задаче. Не угадывай авторов.
-Найди ошибки и выводы без опоры, противоречия между картами и важные пробелы обеих.
-Для спорного факта дай проверяемую опору; для логической ошибки укажи место и
-объясни разрыв. Не придумывай замечания ради вида. В конце дай чек-лист судье.
+Перед тобой исходная задача (цель и бриф) и две обезличенные карты по ней. Не
+угадывай авторов.
+
+Проверь прежде всего, отвечают ли карты на поставленный в цели вопрос, — или обе
+съехали в сторону. Затем найди ошибки и выводы без опоры, противоречия между
+картами и важные пробелы обеих. Для спорного факта дай проверяемую опору; для
+логической ошибки укажи место и объясни разрыв. Не придумывай замечания ради вида.
+Проверь отдельно: было ли сравнение с альтернативами там, где карта выбрала уже
+имеющийся у владельца инструмент, и не отсекает ли карта варианты по ограничению,
+помеченному в брифе как предположение.
+
+Каждое существенное замечание начинай с кода на отдельной строке: «К1.», «К2.» и
+далее сквозной нумерацией. Мелочи собери одним абзацем без кодов. Последней
+строкой ответа перечисли выданные коды: «ВЫДАНЫ ЗАМЕЧАНИЯ: К1, К2, …».
+
+Отдельным разделом «Общая ошибка» допусти, что обе карты ошибаются одинаково: обе
+поверили одному источнику, обе приняли одно допущение как данность, обе прошли мимо
+одного и того же. Не нашёл такого — напиши прямо «общей ошибки не нашёл» и объясни,
+что проверял. Выдуманная общая ошибка хуже её отсутствия.
+
+В конце дай чек-лист судье.
 """
 
 JUDGE_PROMPT = """[ROLE:JUDGE]
-Собери итоговый ВЫВОД ПО ПРОБЛЕМЕ, а не отчёт о работе моделей. Запрещены обороты
-«карта 1 сказала», «критик нашёл», «обе модели сошлись».
+Собери ГОТОВЫЙ ПРОДУКТ для владельца, а не отчёт о работе моделей. Запрещены
+обороты «карта 1 сказала», «критик нашёл», «обе модели сошлись», имена моделей.
 
 Структура:
+0. То, что заказано. Найди в цели раздел «Формат итога» и выдай ровно это —
+   первым и самым подробным разделом. Просили схему — дай схему по шагам с
+   инструментами и передаваемыми данными; просили план — дай план; просили
+   выбор — назови выбранное. Конкретика, на которой стоит решение, обязана быть
+   здесь: названия инструментов и моделей, режимы, форматы, цены, версии. Но
+   переносить всё подряд не надо — недоказанное и не влияющее на решение
+   отбрасывай. Где разведка дала разные ответы на один вопрос, скажи об этом
+   прямо в том шаге, которого это касается («по одним данным столько, по другим
+   столько, верить стоит вот этому, потому что…»), без имён источников и без
+   отдельного раздела-пересказа.
 1. Решение — прямо и коротко.
 2. Главное обоснование.
 3. Условия и риски.
 4. Что проверить лично — по приоритету.
 5. Насколько этому верить: что подтверждено, а что ещё проверить.
 
+Разделы 1–5 короче нулевого: владельцу нужен продукт, оговорки — довесок к нему.
+Деньги считай в долларах; страна владельца не задана.
+
 Отделяй факты от предположений. Если данных недостаточно, рекомендуй сначала
 получить конкретный недостающий факт, а не выдумывай уверенный ответ.
 Для юридических, медицинских, финансовых, авиационных и других решений с высоким
 риском делай проверку у профильного специалиста явным условием, а не сноской.
+
+Самой последней частью добавь служебный блок — он не для владельца, его отрежет
+программа. Формат строго такой:
+
+===ПРИЁМКА===
+К1: принято — <что изменилось в выводе> | отклонено — <почему>
+К2: ...
+===КОНЕЦ===
+
+Перечисли ВСЕ коды из строки критика «ВЫДАНЫ ЗАМЕЧАНИЯ». Пропущенный код программа
+считает незакрытым. Отклонить замечание можно, но с причиной, а не молчанием.
 """
+
+CRITIQUE_CODE = re.compile(r"\bК(\d{1,2})\b")
+ACCEPTANCE_BLOCK = re.compile(r"===ПРИЁМКА===(.*?)(?:===КОНЕЦ===|\Z)", re.S)
 
 MODEL_NAMES = re.compile(
     r"\b(Claude|Клод[а-я]*|Codex|Кодекс[а-я]*|Anthropic|OpenAI|GPT[-\w.]*|"
@@ -343,6 +411,23 @@ def analysis_fingerprint(input_hash: str, profiles: dict[str, str]) -> str:
     return sha256_parts(VERSION, input_hash, json.dumps(profiles, sort_keys=True))
 
 
+def role_overlaps(profiles: dict[str, str]) -> list[str]:
+    """Какие роли сидят на одном профиле. Двумя профилями развести все пять ролей
+    нельзя, поэтому совпадения не запрещаются, а печатаются в вердикт: читатель
+    должен знать, что критик и исследователь — возможно, одна и та же модель."""
+    russian = {
+        "guard": "сторож", "research-a": "ресерч A", "research-b": "ресерч B",
+        "critique": "критик", "judge": "судья",
+    }
+    by_profile: dict[str, list[str]] = {}
+    for role, profile in profiles.items():
+        by_profile.setdefault(profile, []).append(russian.get(role, role))
+    return [
+        f"{' и '.join(roles)} — один профиль {profile}"
+        for profile, roles in sorted(by_profile.items()) if len(roles) > 1
+    ]
+
+
 def composed(prompt: str, **sections: str) -> str:
     parts = [GUEST_HEADER.strip(), prompt.strip()]
     for title, text in sections.items():
@@ -351,8 +436,9 @@ def composed(prompt: str, **sections: str) -> str:
 
 
 def run_guard(args: argparse.Namespace, state: dict, conversation: Path,
-              goal: str, brief: str, criteria: str, executable: str) -> dict:
-    fingerprint = input_fingerprint(goal, brief, criteria, args.primary_profile)
+              goal: str, brief: str, criteria: str, executable: str,
+              guard_profile: str) -> dict:
+    fingerprint = input_fingerprint(goal, brief, criteria, guard_profile)
     stored = state.get("guard")
     if stored and stored.get("fingerprint") == fingerprint:
         response_path = conversation / stored.get("response", "")
@@ -371,7 +457,7 @@ def run_guard(args: argparse.Namespace, state: dict, conversation: Path,
         )
 
     prompt = composed(GUARD_PROMPT, criteria=criteria, goal=goal, brief=brief)
-    command = guest_command(executable, args.primary_profile, prompt)
+    command = guest_command(executable, guard_profile, prompt)
     if args.dry_run:
         return {
             "cached": False, "dry_run": True, "fingerprint": fingerprint,
@@ -394,7 +480,7 @@ def run_guard(args: argparse.Namespace, state: dict, conversation: Path,
     write_text(conversation / response_rel, response)
     state["guard"] = {
         "fingerprint": fingerprint,
-        "profile": args.primary_profile,
+        "profile": guard_profile,
         "verdict": verdict,
         "response": response_rel,
         "checked_at": utc_now(),
@@ -437,6 +523,32 @@ def stage(state: dict, conversation: Path, executable: str, name: str,
     return response, False
 
 
+def critique_codes(text: str) -> set[str]:
+    """Коды замечаний, объявленные критиком в строке «ВЫДАНЫ ЗАМЕЧАНИЯ»."""
+    for line in text.splitlines():
+        if "ВЫДАНЫ ЗАМЕЧАНИЯ" in line.upper():
+            return {f"К{n}" for n in CRITIQUE_CODE.findall(line)}
+    return {f"К{n}" for n in CRITIQUE_CODE.findall(text)}
+
+
+def split_acceptance(verdict_path: Path, critique: str) -> list[str]:
+    """Вырезает служебный блок приёмки в отдельный файл и сверяет коды.
+    Владельцу остаётся чистый вывод, программе — проверяемый след."""
+    text = verdict_path.read_text(encoding="utf-8")
+    expected = critique_codes(critique)
+    found = ACCEPTANCE_BLOCK.search(text)
+    if not found:
+        return sorted(expected)
+    block = found.group(1).strip()
+    write_text(verdict_path, text[:found.start()].rstrip() + "\n")
+    write_text(
+        verdict_path.parent / "acceptance.md",
+        "# Что судья сделал с замечаниями критика\n\n" + block + "\n",
+    )
+    closed = {f"К{n}" for n in CRITIQUE_CODE.findall(block)}
+    return sorted(expected - closed)
+
+
 def anonymize(text: str) -> str:
     return MODEL_NAMES.sub("модель", text)
 
@@ -454,20 +566,26 @@ def execute(args: argparse.Namespace) -> dict:
         raise ConsigliereError(
             "Необязательный профиль критика должен отличаться от обоих ресерчеров."
         )
+    # Сторож не должен сидеть на профиле судьи: он оценивает задачу, по которой
+    # тот же слот потом выносит решение. Полностью развести роли двумя профилями
+    # нельзя, поэтому оставшиеся совпадения не запрещаем, а печатаем в вердикт.
     profiles = {
-        "guard": args.primary_profile,
+        "guard": args.research_profile,
         "research-a": args.primary_profile,
         "research-b": args.research_profile,
         "critique": critic,
         "judge": args.primary_profile,
     }
+    overlaps = role_overlaps(profiles)
     validate_profiles(executable, list(profiles.values()))
 
-    guard = run_guard(args, state, conversation, goal, brief, criteria, executable)
+    guard = run_guard(args, state, conversation, goal, brief, criteria,
+                      executable, profiles["guard"])
     if args.only_guard:
         return {
             "ok": True, "mode": "consigliere", "only_guard": bool(args.only_guard),
             "conversation": str(conversation), "profiles": profiles, "guard": guard,
+            "role_overlaps": overlaps,
             "warning": "Сторож — один вызов профиля; дорогой конвейер ещё не запущен.",
         }
     if args.dry_run:
@@ -481,7 +599,8 @@ def execute(args: argparse.Namespace) -> dict:
         return {
             "ok": True, "mode": "consigliere", "dry_run": True,
             "conversation": str(conversation), "profiles": profiles,
-            "guard": guard, "planned_calls": planned_commands(executable, profiles),
+            "guard": guard, "role_overlaps": overlaps,
+            "planned_calls": planned_commands(executable, profiles),
             "warning": "Полный запуск выполнит четыре последовательных вызова моделей.",
         }
     if guard.get("verdict") != "ГОТОВО":
@@ -491,11 +610,11 @@ def execute(args: argparse.Namespace) -> dict:
 
     input_hash = guard["fingerprint"]
     run_hash = analysis_fingerprint(input_hash, profiles)
-    if any(
-        item.get("fingerprint") != run_hash
-        for item in state.get("stages", {}).values()
-    ):
-        raise ConsigliereError("Есть этапы от другого набора материалов или профилей.")
+
+    def stage_hash(name: str, prompt: str) -> str:
+        """Отпечаток этапа: материалы, профили и текст его промпта. Правка
+        промпта делает готовый ответ устаревшим — иначе в дело пойдёт старый."""
+        return sha256_parts(run_hash, name, prompt)
 
     research_a_prompt = composed(
         RESEARCH_PROMPT.format(role="RESEARCH-A"), goal=goal, brief=brief,
@@ -503,41 +622,62 @@ def execute(args: argparse.Namespace) -> dict:
     research_b_prompt = composed(
         RESEARCH_PROMPT.format(role="RESEARCH-B"), goal=goal, brief=brief,
     )
+    for name, prompt in (("research-a", research_a_prompt),
+                         ("research-b", research_b_prompt)):
+        item = state.get("stages", {}).get(name)
+        if item and item.get("fingerprint") != stage_hash(name, prompt):
+            raise ConsigliereError("Есть этапы от другого набора материалов или профилей.")
     map_a, cached_a = stage(
         state, conversation, executable, "research-a", profiles["research-a"],
-        research_a_prompt, run_hash, args.timeout,
+        research_a_prompt, stage_hash("research-a", research_a_prompt), args.timeout,
     )
     map_b, cached_b = stage(
         state, conversation, executable, "research-b", profiles["research-b"],
-        research_b_prompt, run_hash, args.timeout,
+        research_b_prompt, stage_hash("research-b", research_b_prompt), args.timeout,
     )
     critique_prompt = composed(
-        CRITIQUE_PROMPT, map_a=anonymize(map_a), map_b=anonymize(map_b),
+        CRITIQUE_PROMPT, goal=goal, brief=brief,
+        map_a=anonymize(map_a), map_b=anonymize(map_b),
     )
+    critique_hash = sha256_parts(run_hash, "critique", critique_prompt, map_a, map_b)
     critique, cached_critique = stage(
         state, conversation, executable, "critique", profiles["critique"],
-        critique_prompt, run_hash, args.timeout,
+        critique_prompt, critique_hash, args.timeout,
     )
     judge_prompt = composed(
         JUDGE_PROMPT, goal=goal, brief=brief, map_a=anonymize(map_a),
         map_b=anonymize(map_b), critique=critique,
     )
+    judge_hash = sha256_parts(run_hash, "judge", judge_prompt, map_a, map_b, critique)
     verdict, cached_judge = stage(
         state, conversation, executable, "judge", profiles["judge"],
-        judge_prompt, run_hash, args.timeout,
+        judge_prompt, judge_hash, args.timeout,
     )
     result_path = conversation / state["stages"]["judge"]["response"]
+    unanswered = split_acceptance(result_path, critique) if not cached_judge else []
+    verdict = result_path.read_text(encoding="utf-8")
+    if overlaps and not cached_judge:
+        note = "> Роли делят профили: " + "; ".join(overlaps) + ".\n"
+        note += "> Независимость этих ролей неполная — учитывайте это, читая вывод.\n\n"
+        write_text(result_path, note + verdict)
     return {
         "ok": True,
         "mode": "consigliere",
         "conversation": str(conversation),
         "profiles": profiles,
         "guard": guard,
+        "role_overlaps": overlaps,
+        "unanswered_critique": unanswered,
+        "acceptance": str(result_path.parent / "acceptance.md"),
         "cached_stages": {
             "research-a": cached_a, "research-b": cached_b,
             "critique": cached_critique, "judge": cached_judge,
         },
         "result": str(result_path),
+        "warning": (
+            "Судья не закрыл замечания критика: " + ", ".join(unanswered)
+            if unanswered else ""
+        ),
         "result_preview": verdict[:500],
     }
 

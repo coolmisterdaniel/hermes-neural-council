@@ -49,7 +49,14 @@ elif "[ROLE:RESEARCH-B]" in prompt:
     print(f"Карта Codex от профиля {profile}: факт B и источник.")
 elif "[ROLE:CRITIQUE]" in prompt:
     print(f"Критика профиля {profile}: проверить два риска.")
+    print("К1. Первое замечание.")
+    print("К2. Второе замечание.")
+    print("ВЫДАНЫ ЗАМЕЧАНИЯ: К1, К2")
 elif "[ROLE:JUDGE]" in prompt:
     print(f"РЕШЕНИЕ профиля {profile}: продолжать при выполнении условий.")
+    print(os.environ.get(
+        "HNC_FAKE_ACCEPTANCE",
+        "===ПРИЁМКА===\nК1: принято — уточнил условие\nК2: отклонено — вне границ\n===КОНЕЦ===",
+    ))
 else:
     print(f"Ответ профиля {profile}.")

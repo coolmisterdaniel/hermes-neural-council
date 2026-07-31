@@ -131,8 +131,10 @@ class ConsigliereCliTests(unittest.TestCase):
         calls = self.calls()
         self.assertEqual(len(calls), 5)
         profiles = [call[call.index("--profile") + 1] for call in calls]
+        # Сторож работает на втором профиле: он оценивает задачу, по которой
+        # первый профиль потом выносит решение судьи.
         self.assertEqual(profiles, [
-            "council-1", "council-1", "council-2", "council-3", "council-1",
+            "council-2", "council-1", "council-2", "council-3", "council-1",
         ])
         for call in calls:
             self.assertIn("--ignore-rules", call)
@@ -173,6 +175,54 @@ class ConsigliereCliTests(unittest.TestCase):
         self.assertIn("точную строку", data["error"])
         state = json.loads((self.conversation / "state.json").read_text(encoding="utf-8"))
         self.assertIsNone(state["guard"])
+
+    def test_shared_profiles_are_reported_in_verdict(self):
+        """Без третьего профиля критик сидит на профиле ресерча B. Запрещать это
+        нельзя — двух профилей на пять ролей не хватает, — но читатель вывода
+        обязан знать, что независимость здесь неполная."""
+        self.guard("ГОТОВО")
+        _, data = self.run_cli(*self.common(), "--confirm")
+        overlaps = " ".join(data["role_overlaps"])
+        self.assertIn("критик", overlaps)
+        self.assertIn("council-2", overlaps)
+        verdict = Path(data["result"]).read_text(encoding="utf-8")
+        self.assertIn("Роли делят профили", verdict)
+
+    def test_every_stage_has_its_own_fingerprint(self):
+        """Общий отпечаток на все этапы оставлял изменённую карту со старой
+        критикой, а правку промпта — вовсе незамеченной. Теперь отпечаток
+        каждого этапа считается от его входов и текста его промпта."""
+        self.guard("ГОТОВО")
+        self.run_cli(*self.common(), "--confirm")
+        stages = json.loads(
+            (self.conversation / "state.json").read_text(encoding="utf-8")
+        )["stages"]
+        marks = [stages[name]["fingerprint"] for name in stages]
+        self.assertEqual(len(marks), len(set(marks)), "отпечатки этапов совпали")
+
+
+    def test_acceptance_block_is_split_out_and_checked(self):
+        """Служебный блок уезжает в отдельный файл: владельцу — чистый вывод,
+        программе — проверяемый след того, что судья сделал с критикой."""
+        self.guard("ГОТОВО")
+        _, data = self.run_cli(*self.common(), "--confirm")
+        self.assertEqual(data["unanswered_critique"], [])
+        verdict = Path(data["result"]).read_text(encoding="utf-8")
+        self.assertNotIn("ПРИЁМКА", verdict)
+        acceptance = Path(data["acceptance"]).read_text(encoding="utf-8")
+        self.assertIn("К1", acceptance)
+        self.assertIn("К2", acceptance)
+
+    def test_unanswered_critique_is_reported(self):
+        """Судья закрыл одно замечание из двух — работа не считается принятой."""
+        self.guard("ГОТОВО")
+        _, data = self.run_cli(
+            *self.common(), "--confirm",
+            extra_env={"HNC_FAKE_ACCEPTANCE":
+                       "===ПРИЁМКА===\nК1: принято — уточнил\n===КОНЕЦ==="},
+        )
+        self.assertEqual(data["unanswered_critique"], ["К2"])
+        self.assertIn("К2", data["warning"])
 
 
 class ConsiglierePackageTests(unittest.TestCase):
